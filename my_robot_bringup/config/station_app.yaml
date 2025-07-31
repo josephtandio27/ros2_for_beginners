@@ -1,0 +1,19 @@
+/robot_news_station_alpha:
+  ros__parameters:
+    robot_name: alpha
+
+/robot_news_station_beta:
+  ros__parameters:
+    robot_name: beta
+
+/robot_news_station_gamma:
+  ros__parameters:
+    robot_name: gamma
+
+/robot_news_station_delta:
+  ros__parameters:
+    robot_name: delta
+
+/robot_news_station_epsilon:
+  ros__parameters:
+    robot_name: epsilon

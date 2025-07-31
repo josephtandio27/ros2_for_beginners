@@ -1,0 +1,4 @@
+# 3 LEDs, ordered from left to right, are represented by a boolean array,
+# where true means the LED is on and false means the LED is off.
+
+bool[3] led_array

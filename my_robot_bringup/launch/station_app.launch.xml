@@ -1,0 +1,18 @@
+<launch>
+    <node pkg="my_cpp_pkg" exec="robot_news_station" name="robot_news_station_alpha">
+        <param from="$(find-pkg-share my_robot_bringup)/config/station_app.yaml" />
+    </node>
+    <node pkg="my_cpp_pkg" exec="robot_news_station" name="robot_news_station_beta">
+        <param from="$(find-pkg-share my_robot_bringup)/config/station_app.yaml" />
+    </node>
+    <node pkg="my_cpp_pkg" exec="robot_news_station" name="robot_news_station_gamma">
+        <param from="$(find-pkg-share my_robot_bringup)/config/station_app.yaml" />
+    </node>
+    <node pkg="my_cpp_pkg" exec="robot_news_station" name="robot_news_station_delta">
+        <param from="$(find-pkg-share my_robot_bringup)/config/station_app.yaml" />
+    </node>
+    <node pkg="my_cpp_pkg" exec="robot_news_station" name="robot_news_station_epsilon">
+        <param from="$(find-pkg-share my_robot_bringup)/config/station_app.yaml" />
+    </node>
+    <node pkg="my_cpp_pkg" exec="smartphone" />
+</launch>
