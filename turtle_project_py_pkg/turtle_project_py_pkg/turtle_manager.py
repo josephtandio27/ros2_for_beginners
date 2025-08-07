@@ -3,6 +3,7 @@ from functools import partial
 
 import rclpy
 from rclpy.node import Node
+from rclpy.parameter import Parameter
 from turtlesim.srv import Spawn
 from turtlesim.msg import Pose
 from turtlesim.srv import Kill
@@ -12,11 +13,23 @@ import numpy as np
 class TurtleManagerNode(Node):
     def __init__(self):
         super().__init__("turtle_manager")
+        self.declare_parameter("spawn_rate", 2.0)
+        self.spawn_rate_ = self.get_parameter("spawn_rate").value
+        self.add_post_set_parameters_callback(self.parameters_callback)
+
         self.spawned_turtles_ = []
         self.turtle_pose_subs_ = self.create_subscription(Pose, "turtle1/pose", self.callback_turtle_pose, 10)
         self.spawner_client = self.create_client(Spawn, "spawn")
         self.killer_client = self.create_client(Kill, "kill")
         self.get_logger().info("Turtle manager has been started")
+
+    def parameters_callback(self, params: list[Parameter]):
+        for param in params:
+            if param.name == "spawn_rate":
+                self.spawn_rate_ = param.value
+                self.get_logger().info("Spawn rate has been changed to: " + str(self.spawn_rate_))
+                self.spawn_timer_.cancel()
+                self.start_spawning()
     
     ### Listening to turtle 1 pose to kill other turtle ###
     def callback_turtle_pose(self, msg: Pose):
@@ -55,7 +68,7 @@ class TurtleManagerNode(Node):
             name = "turtle_%d" % (n+2)
             self.spawn_turtle(x, y, theta, name)
             n += 1
-        self.spawn_timer_ = self.create_timer(2.0, encapsulated_spawn_turtle)
+        self.spawn_timer_ = self.create_timer(self.spawn_rate_, encapsulated_spawn_turtle)
 
     def spawn_turtle(self, x: float, y: float, theta: float, name: str):
         while not self.spawner_client.wait_for_service(timeout_sec=1.0):

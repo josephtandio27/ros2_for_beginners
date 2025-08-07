@@ -17,12 +17,20 @@ class TurtleManagerNode : public rclcpp::Node
 public:
     TurtleManagerNode() : Node("turtle_manager"), n_turtles(2)
     {
+        this->declare_parameter("spawn_rate", 2.0);
+        spawn_rate_ = static_cast<float>(this->get_parameter("spawn_rate").as_double());
+
+        param_callback_handle_ = this->add_post_set_parameters_callback(
+            std::bind(&TurtleManagerNode::parametersCallback, this, _1)
+        );
+
         spawner_client_ = this->create_client<turtlesim::srv::Spawn>("spawn");
         killer_client_ = this->create_client<turtlesim::srv::Kill>("kill");
         pose1_sub_ = this->create_subscription<turtlesim::msg::Pose>("turtle1/pose", 10,
             std::bind(&TurtleManagerNode::callbackTurtle1Pose, this, _1));
         target_pub_ = this->create_publisher<my_robot_interfaces::msg::TurtleLocArray>("target_turtles", 10);
-        spawn_timer_ = this->create_wall_timer(2s, std::bind(&TurtleManagerNode::spawnTurtle, this));
+        spawn_timer_ = this->create_wall_timer(std::chrono::duration<double>(spawn_rate_), std::bind(&TurtleManagerNode::spawnTurtle, this));
+
         RCLCPP_INFO(this->get_logger(), "Turtle manager node started");
     }
  
@@ -32,12 +40,24 @@ private:
     rclcpp::Subscription<turtlesim::msg::Pose>::SharedPtr pose1_sub_;
     rclcpp::Publisher<my_robot_interfaces::msg::TurtleLocArray>::SharedPtr target_pub_;
     rclcpp::TimerBase::SharedPtr spawn_timer_;
+    PostSetParametersCallbackHandle::SharedPtr param_callback_handle_;
 
     std::array<float, 2> turtle1_pos;
     int n_turtles;
+    float spawn_rate_;
     
     std::mutex available_turtles_mutex_;
     my_robot_interfaces::msg::TurtleLocArray available_turtles;
+
+    void parametersCallback(const std::vector<rclcpp::Parameter>& parameters)
+    {
+        for (const auto &param: parameters) {
+            spawn_rate_ = static_cast<float>(param.as_double());
+            spawn_timer_->cancel();
+            spawn_timer_->reset();
+            spawn_timer_ = this->create_wall_timer(std::chrono::duration<double>(spawn_rate_), std::bind(&TurtleManagerNode::spawnTurtle, this));
+        }
+    }
 
     void callbackTurtle1Pose(const turtlesim::msg::Pose::SharedPtr msg)
     {
