@@ -12,6 +12,8 @@ find_package(rosidl_default_generators REQUIRED)
 set(msg_files 
   "msg/HardwareStatus.msg"
   "msg/LedPanelState.msg"
+  "msg/TurtleLoc.msg"
+  "msg/TurtleLocArray.msg"
 )
 
 set(srv_files 
