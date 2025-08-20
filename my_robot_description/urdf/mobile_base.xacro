@@ -74,7 +74,7 @@
             o_xyz="0 0 0" o_rpy="0 0 0"/>
     </link>
 
-    
+    <!-- joints     -->
     <joint name="base_joint" type="fixed">
         <parent link="base_footprint" />
         <child link="base_link" />
