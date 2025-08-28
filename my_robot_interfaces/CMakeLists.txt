@@ -21,9 +21,14 @@ set(srv_files
   "srv/SetLed.srv"
 )
 
+set(action_files 
+  "action/CountUntil.action"
+)
+
 rosidl_generate_interfaces(${PROJECT_NAME}
   ${msg_files}
   ${srv_files}
+  ${action_files}
 )
 
 ament_export_dependencies(rosidl_default_runtime)
