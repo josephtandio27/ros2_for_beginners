@@ -14,13 +14,13 @@ class CountUntilClientNode : public rclcpp::Node
 public:
     CountUntilClientNode() : Node("count_until_client")
     {
-        count_until_client = rclcpp_action::create_client<CountUntil>(this, "count_until");
+        count_until_client_ = rclcpp_action::create_client<CountUntil>(this, "count_until");
     }
 
     void send_goal(int target_number, double period)
     {
         // Wait for the Action server
-        count_until_client->wait_for_action_server(10s);
+        count_until_client_->wait_for_action_server(10s);
 
         // Create a goal
         auto goal = CountUntil::Goal();
@@ -38,14 +38,14 @@ public:
 
         // Send the goal
         RCLCPP_INFO(this->get_logger(), "Sending a goal");
-        count_until_client->async_send_goal(goal, options);
+        count_until_client_->async_send_goal(goal, options);
         
         // // Cancel the goal (test)
         // timer_ = this->create_wall_timer(std::chrono::seconds(2), 
         //     std::bind(&CountUntilClientNode::timer_callback, this));
     }
 private:
-    rclcpp_action::Client<CountUntil>::SharedPtr count_until_client;
+    rclcpp_action::Client<CountUntil>::SharedPtr count_until_client_;
     rclcpp::TimerBase::SharedPtr timer_;
     CountUntilGoalHandle::SharedPtr goal_handle_;
 
@@ -83,7 +83,7 @@ private:
 
     void timer_callback() {
         RCLCPP_INFO(this->get_logger(), "Canceling the goal");
-        count_until_client->async_cancel_goal(goal_handle_);
+        count_until_client_->async_cancel_goal(goal_handle_);
         timer_->cancel();
     }
 };

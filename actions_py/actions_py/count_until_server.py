@@ -26,7 +26,7 @@ class CountUntilServerNode(Node):
             execute_callback=self.execute_callback,
             callback_group=ReentrantCallbackGroup()
         )
-        self.get_logger().info("Action Server has been started")
+        self.get_logger().info("Count Until Server has been started")
 
     def goal_callback(self, goal_request: CountUntil.Goal):
         self.get_logger().info("Goal request received")
@@ -52,6 +52,7 @@ class CountUntilServerNode(Node):
         return GoalResponse.ACCEPT
 
     def handle_accepted_callback(self, goal_handle: ServerGoalHandle):
+        # Callback to transition from ACCEPTED state to EXECUTING or CANCELING state
         with self.goal_lock_:
             if self.goal_handle_ is not None:
                 self.goal_queue_.append(goal_handle)
@@ -65,6 +66,7 @@ class CountUntilServerNode(Node):
     def execute_callback(self, goal_handle: ServerGoalHandle):
         with self.goal_lock_:
             self.goal_handle_ = goal_handle
+
         feedback = CountUntil.Feedback()
         result = CountUntil.Result()
 

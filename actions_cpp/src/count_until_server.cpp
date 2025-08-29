@@ -22,7 +22,7 @@ public:
             cb_group_
         );
         
-        RCLCPP_INFO(this->get_logger(), "Action server has been started");
+        RCLCPP_INFO(this->get_logger(), "Count until server has been started");
     }
  
 private:
