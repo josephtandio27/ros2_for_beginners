@@ -1,6 +1,6 @@
 from setuptools import find_packages, setup
 
-package_name = 'action_challenge_py'
+package_name = 'lifecycle_py'
 
 setup(
     name=package_name,
@@ -13,16 +13,16 @@ setup(
     ],
     install_requires=['setuptools'],
     zip_safe=True,
-    maintainer='exiew',
-    maintainer_email='josephtandio27@gmail.com',
+    maintainer='ed',
+    maintainer_email='todo.todo@todo.com',
     description='TODO: Package description',
-    license='Apache-2.0',
+    license='TODO: License declaration',
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            'move_one_axis_server = action_challenge_py.move_one_axis_server:main',
-            'move_one_axis_client = action_challenge_py.move_one_axis_client:main',
-            'move_one_axis_server_lifecycle = action_challenge_py.move_one_axis_server_lifecycle:main',
+            "number_publisher = lifecycle_py.number_publisher:main",
+            "lifecycle_node_manager = lifecycle_py.lifecycle_node_manager:main",
+            "move_robot_manager = lifecycle_py.move_robot_manager:main",
         ],
     },
 )

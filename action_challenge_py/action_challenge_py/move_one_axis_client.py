@@ -24,7 +24,8 @@ class MoveOneAxisClientNode(Node):
 
     def send_goal(self, target_position, velocity):
         # Wait for the server
-        self.move_one_axis_client_.wait_for_server(timeout_sec=10.0)
+        # self.move_one_axis_client_.wait_for_server(timeout_sec=10.0)
+        self.move_one_axis_client_.wait_for_server()
 
         # Create a goal
         goal = MoveOneAxis.Goal()

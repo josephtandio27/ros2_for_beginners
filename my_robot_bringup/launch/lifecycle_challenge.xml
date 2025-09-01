@@ -1,0 +1,15 @@
+<launch>
+    <let name="action_name" value="move_one_axis" />
+    <let name="action_node_name" value="moas" />
+    
+    <node pkg="action_challenge_py" exec="move_one_axis_server_lifecycle" name="$(var action_node_name)1" >
+        <param name="action_name" value="$(var action_name)_1" />
+    </node>
+    <node pkg="action_challenge_py" exec="move_one_axis_server_lifecycle" name="$(var action_node_name)2" >
+        <param name="action_name" value="$(var action_name)_2" />
+    </node>
+
+    <node pkg="lifecycle_py" exec="move_robot_manager" name="move_robot_manager">
+        <param name="managed_node_names" value="['$(var action_node_name)1', '$(var action_node_name)2']" />
+    </node>
+</launch>
