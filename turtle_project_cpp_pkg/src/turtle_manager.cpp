@@ -28,8 +28,10 @@ public:
         killer_client_ = this->create_client<turtlesim::srv::Kill>("kill");
         pose1_sub_ = this->create_subscription<turtlesim::msg::Pose>("turtle1/pose", 10,
             std::bind(&TurtleManagerNode::callbackTurtle1Pose, this, _1));
-        target_pub_ = this->create_publisher<my_robot_interfaces::msg::TurtleLocArray>("target_turtles", 10);
-        spawn_timer_ = this->create_wall_timer(std::chrono::duration<double>(spawn_rate_), std::bind(&TurtleManagerNode::spawnTurtle, this));
+        target_pub_ = this->create_publisher<my_robot_interfaces::msg::
+            TurtleLocArray>("target_turtles", 10);
+        spawn_timer_ = this->create_wall_timer(std::chrono::duration<double>(spawn_rate_),
+            std::bind(&TurtleManagerNode::spawnTurtle, this));
 
         RCLCPP_INFO(this->get_logger(), "Turtle manager node started");
     }

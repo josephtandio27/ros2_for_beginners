@@ -1,6 +1,6 @@
 from setuptools import find_packages, setup
 
-package_name = 'lifecycle_py'
+package_name = 'executors_py'
 
 setup(
     name=package_name,
@@ -20,10 +20,8 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            "number_publisher = lifecycle_py.number_publisher:main",
-            "lifecycle_node_manager = lifecycle_py.lifecycle_node_manager:main",
-            "move_robot_manager = lifecycle_py.move_robot_manager:main",
-            "turtlesim_move_manager = lifecycle_py.turtlesim_move_manager:main",
+            "single_threaded_executor = executors_py.single_threaded_executor:main",
+            "multi_threaded_executor = executors_py.multi_threaded_executor:main"
         ],
     },
 )

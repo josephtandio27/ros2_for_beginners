@@ -1,0 +1,16 @@
+# Goal
+float32 linear_vel_x
+float32 angular_vel_z
+float32 duration
+---
+# Result
+float32 final_pos_x
+float32 final_pos_y
+float32 final_theta
+float32 pos_error
+bool success
+---
+# Feedback
+float32 current_pos_x
+float32 current_pos_y
+float32 current_theta

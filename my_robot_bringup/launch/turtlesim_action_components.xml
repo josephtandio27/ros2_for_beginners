@@ -1,0 +1,19 @@
+<launch>
+    <let name="turtlesim_manager_name" value="turtlesim_manager" />
+    
+    <node pkg="turtlesim" exec="turtlesim_node" name="turtlesim_node" output="screen" />
+    
+    <node_container pkg="rclcpp_components" exec="component_container" name="turtlesim_container" 
+        namespace="final_project">
+        <composable_node pkg="final_project" plugin="final_project::TurtlesimManager" 
+            name="$(var turtlesim_manager_name)" >
+            <param name="turtle_name" value="turtle1" />
+        </composable_node>
+    </node_container>
+
+    <node pkg="lifecycle_py" exec="turtlesim_move_manager" 
+        name="turtlesim_move_manager" output="screen">
+        <param name="managed_node_name" value="$(var turtlesim_manager_name)" />
+    </node>
+
+</launch>
