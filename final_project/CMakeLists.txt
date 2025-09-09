@@ -14,6 +14,9 @@ find_package(rclcpp_lifecycle REQUIRED)
 find_package(my_robot_interfaces REQUIRED)
 find_package(turtlesim REQUIRED)
 find_package(geometry_msgs REQUIRED)
+find_package(tf2_geometry_msgs REQUIRED)
+find_package(tf2_ros REQUIRED)
+find_package(tf2 REQUIRED)
 
 include_directories(include)
 
@@ -21,11 +24,16 @@ add_library(turtlesim_manager_component SHARED src/turtlesim_manager.cpp)
 ament_target_dependencies(turtlesim_manager_component rclcpp rclcpp_action rclcpp_lifecycle rclcpp_components my_robot_interfaces turtlesim geometry_msgs)
 rclcpp_components_register_nodes(turtlesim_manager_component "final_project::TurtlesimManager")
 
+add_library(diff_drive_gz_manager_component SHARED src/diff_drive_gz_manager.cpp)
+ament_target_dependencies(diff_drive_gz_manager_component rclcpp rclcpp_action rclcpp_lifecycle rclcpp_components my_robot_interfaces turtlesim geometry_msgs tf2_geometry_msgs tf2_ros tf2)
+rclcpp_components_register_nodes(diff_drive_gz_manager_component "final_project::DiffDriveGzManager")
+
 add_executable(move_turtle_action_server src/move_turtle_action_server.cpp)
 ament_target_dependencies(move_turtle_action_server rclcpp rclcpp_action my_robot_interfaces turtlesim geometry_msgs)
 
 install(TARGETS
   turtlesim_manager_component
+  diff_drive_gz_manager_component
   ARCHIVE DESTINATION lib
   LIBRARY DESTINATION lib
   RUNTIME DESTINATION bin

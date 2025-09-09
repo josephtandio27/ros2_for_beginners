@@ -70,8 +70,8 @@ int main(int argc, char **argv)
 {
     rclcpp::init(argc, argv);
     rclcpp::executors::SingleThreadedExecutor executor;
-    auto node1 = std::make_shared<Node1>;
-    auto node2 = std::make_shared<Node2>;
+    auto node1 = std::make_shared<Node1>();
+    auto node2 = std::make_shared<Node2>();
     executor.add_node(node1);
     executor.add_node(node2);
     executor.spin();

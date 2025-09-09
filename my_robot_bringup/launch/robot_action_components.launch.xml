@@ -1,0 +1,17 @@
+<launch>
+    <let name="diff_drive_manager_name" value="diff_drive_manager" />
+    
+    <node_container pkg="rclcpp_components" exec="component_container" name="diff_drive_container" 
+        namespace="final_project">
+        <composable_node pkg="final_project" plugin="final_project::DiffDriveGzManager" 
+            name="$(var diff_drive_manager_name)" >
+            <param name="vel_topic" value="cmd_vel" />
+        </composable_node>
+    </node_container>
+
+    <node pkg="lifecycle_py" exec="turtlesim_move_manager" 
+        name="turtlesim_move_manager" output="screen">
+        <param name="managed_node_name" value="$(var diff_drive_manager_name)" />
+    </node>
+
+</launch>

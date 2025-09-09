@@ -263,6 +263,7 @@ void TurtlesimManager::execute_goal(const std::shared_ptr<MoveTurtleGoalHandle> 
             result->final_pos_x = turtle_pose_[0];
             result->final_pos_y = turtle_pose_[1];
             result->final_theta = turtle_pose_[2];
+            // TODO
             result->pos_error = std::hypot(pred_pose[0] - turtle_pose_[0], pred_pose[1] - turtle_pose_[1]);
             result->success = false;
             goal_handle->canceled(result);
@@ -283,6 +284,7 @@ void TurtlesimManager::execute_goal(const std::shared_ptr<MoveTurtleGoalHandle> 
         result->final_pos_x = turtle_pose_[0];
         result->final_pos_y = turtle_pose_[1];
         result->final_theta = turtle_pose_[2];
+        // TODO
         result->pos_error = std::hypot(pred_pose[0] - turtle_pose_[0],
             pred_pose[1] - turtle_pose_[1]);
     }
