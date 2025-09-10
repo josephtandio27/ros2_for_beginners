@@ -15,10 +15,11 @@ using namespace std::chrono_literals;
 namespace final_project {
 
 TurtlesimManager::TurtlesimManager(const rclcpp::NodeOptions &options) : 
-    LifecycleNode("move_turtle_action_server", options), pose_received_(false),
+    LifecycleNode("move_turtle_action_server", options), receive_pose_(false),
     loop_freq_(100), is_active_(false)
 {
     cb_group_ = this->create_callback_group(rclcpp::CallbackGroupType::Reentrant);
+    cb_group2_ = this->create_callback_group(rclcpp::CallbackGroupType::Reentrant);
     turtle1_spawned_ = true;
     RCLCPP_INFO(this->get_logger(), "Move turtle action server in unconfigured state");
 }
@@ -40,7 +41,7 @@ LifecycleCallbackReturn TurtlesimManager::on_configure(const rclcpp_lifecycle::S
     
     // Create subscriber
     rclcpp::SubscriptionOptions options;
-    options.callback_group = cb_group_;
+    options.callback_group = cb_group2_;
     pose1_sub_ = this->create_subscription<turtlesim::msg::Pose>("/" + turtle_name_ + "/pose", 10,
         std::bind(&TurtlesimManager::callbackPose1, this, _1), options);
 
@@ -62,7 +63,7 @@ LifecycleCallbackReturn TurtlesimManager::on_configure(const rclcpp_lifecycle::S
     if (turtle1_spawned_) {
         RCLCPP_INFO(this->get_logger(), "Killing turtle1");
         this->killTurtle("turtle1");
-        std::this_thread::sleep_for(5s);
+        std::this_thread::sleep_for(2s);
         turtle1_spawned_ = false;
     }
 
@@ -161,8 +162,11 @@ void TurtlesimManager::callbackPose1(const turtlesim::msg::Pose::SharedPtr msg)
 {
     std::lock_guard<std::mutex> lock(mutex_);
     turtle_pose_ = {msg->x, msg->y, msg->theta};
-    pose_received_ = true;
-    cv_.notify_one();
+
+    if (!receive_pose_) {
+        receive_pose_ = true;
+        cv_.notify_one();
+    }
 }
 
 // Publish twist to turtle
@@ -224,7 +228,7 @@ rclcpp_action::CancelResponse TurtlesimManager::cancel_callback(
 
 void TurtlesimManager::handle_accepted_callback(const std::shared_ptr<MoveTurtleGoalHandle> goal_handle) {
     RCLCPP_INFO(this->get_logger(), "Executing the goal");
-    execute_goal(goal_handle);
+    std::thread{std::bind(&TurtlesimManager::execute_goal, this, goal_handle)}.detach();
 }
 
 void TurtlesimManager::execute_goal(const std::shared_ptr<MoveTurtleGoalHandle> goal_handle) {
@@ -244,29 +248,32 @@ void TurtlesimManager::execute_goal(const std::shared_ptr<MoveTurtleGoalHandle> 
     const int num_iterations = static_cast<int>(duration * loop_freq_);
     rclcpp::Rate loop_rate(loop_freq_);
     
-    // Wait for first pose message
-    {
-        std::unique_lock<std::mutex> lock(mutex_);
-        cv_.wait(lock, [this] { return pose_received_; });
-        pose_received_ = false;
-    }
-    std::array<float, 3> pred_pose = predictPos(turtle_pose_, 
-        linear_vel_x, angular_vel_z, duration);
+    // Get first pose message
+    std::array<float, 3> pred_pose;
+    std::unique_lock<std::mutex> lock(mutex_);
+    cv_.wait(lock, [this]{ return receive_pose_; });
+    RCLCPP_INFO(this->get_logger(), "Turtle at x: %f, y: %f, theta: %f", 
+        turtle_pose_[0], turtle_pose_[1], turtle_pose_[2]);
+    pred_pose = predictPos(turtle_pose_, linear_vel_x, angular_vel_z, duration);
+    RCLCPP_INFO(this->get_logger(), "Predicted pose at x: %f, y: %f, theta: %f", 
+        pred_pose[0], pred_pose[1], pred_pose[2]);
+    lock.unlock();
 
     std::this_thread::sleep_for(std::chrono::milliseconds(50));
     RCLCPP_INFO(this->get_logger(), "Publishing linear x velocity: %f, angular z velocity: %f",
         linear_vel_x, angular_vel_z);
     for (int i = 0; i < num_iterations; i++) {
         if (goal_handle->is_canceling()) {
-            std::lock_guard<std::mutex> lock(mutex_);
-            // Set final state and return result
-            result->final_pos_x = turtle_pose_[0];
-            result->final_pos_y = turtle_pose_[1];
-            result->final_theta = turtle_pose_[2];
-            // TODO
-            result->pos_error = std::hypot(pred_pose[0] - turtle_pose_[0], pred_pose[1] - turtle_pose_[1]);
-            result->success = false;
-            goal_handle->canceled(result);
+            {
+                std::lock_guard<std::mutex> lock(mutex_);
+                // Set final state and return result
+                result->final_pos_x = turtle_pose_[0];
+                result->final_pos_y = turtle_pose_[1];
+                result->final_theta = turtle_pose_[2];
+                result->pos_error = std::hypot(pred_pose[0] - turtle_pose_[0], pred_pose[1] - turtle_pose_[1]);
+                result->success = false;
+                goal_handle->canceled(result);
+            }
             return;
         }
         publishTwist(linear_vel_x, angular_vel_z);
@@ -284,7 +291,6 @@ void TurtlesimManager::execute_goal(const std::shared_ptr<MoveTurtleGoalHandle> 
         result->final_pos_x = turtle_pose_[0];
         result->final_pos_y = turtle_pose_[1];
         result->final_theta = turtle_pose_[2];
-        // TODO
         result->pos_error = std::hypot(pred_pose[0] - turtle_pose_[0],
             pred_pose[1] - turtle_pose_[1]);
     }
@@ -296,9 +302,11 @@ std::array<float, 3> TurtlesimManager::predictPos(const std::array<float, 3>& in
     const float ang_vel_z, const float duration)
 {
     std::array<float, 3> final_pos = init_pos;
-    final_pos[0] += lin_vel_x * cos(final_pos[2]) * duration;
-    final_pos[1] += lin_vel_x * sin(final_pos[2]) * duration;
-    final_pos[2] += ang_vel_z * duration;
+    final_pos[0] += lin_vel_x*(sin(final_pos[2]+ang_vel_z*duration)-
+        sin(final_pos[2]))/ang_vel_z;
+    final_pos[1] += lin_vel_x*(-cos(final_pos[2]+ang_vel_z*duration)+
+        cos(final_pos[2]))/ang_vel_z;
+    final_pos[2] += ang_vel_z*duration;
     final_pos[2] = fmod(final_pos[2], 2.0 * M_PI);
     if (final_pos[2] > M_PI) {
         final_pos[2] -= 2.0 * M_PI;

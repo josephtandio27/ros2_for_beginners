@@ -248,9 +248,11 @@ std::array<float, 3> DiffDriveGzManager::predictPos(const std::array<float, 3>& 
     const float ang_vel_z, const float duration)
 {
     std::array<float, 3> final_pos = init_pos;
-    final_pos[0] += lin_vel_x * cos(final_pos[2]) * duration;
-    final_pos[1] += lin_vel_x * sin(final_pos[2]) * duration;
-    final_pos[2] += ang_vel_z * duration;
+    final_pos[0] += lin_vel_x*(sin(final_pos[2]+ang_vel_z*duration)-
+        sin(final_pos[2]))/ang_vel_z;
+    final_pos[1] += lin_vel_x*(-cos(final_pos[2]+ang_vel_z*duration)+
+        cos(final_pos[2]))/ang_vel_z;
+    final_pos[2] += ang_vel_z*duration;
     final_pos[2] = fmod(final_pos[2], 2.0 * M_PI);
     if (final_pos[2] > M_PI) {
         final_pos[2] -= 2.0 * M_PI;

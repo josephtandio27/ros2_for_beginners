@@ -36,13 +36,14 @@ public:
 private:
     std::string turtle_name_;
     rclcpp::CallbackGroup::SharedPtr cb_group_;
+    rclcpp::CallbackGroup::SharedPtr cb_group2_;
 
     rclcpp::Client<turtlesim::srv::Spawn>::SharedPtr spawner_client_;
     rclcpp::Client<turtlesim::srv::Kill>::SharedPtr killer_client_;
     bool turtle1_spawned_;
     
     rclcpp::Subscription<turtlesim::msg::Pose>::SharedPtr pose1_sub_;
-    bool pose_received_;
+    bool receive_pose_;
     std::array<float, 3> turtle_pose_;
     std::condition_variable cv_;
 
