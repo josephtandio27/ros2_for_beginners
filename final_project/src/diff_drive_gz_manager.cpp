@@ -198,8 +198,11 @@ void DiffDriveGzManager::execute_goal(const std::shared_ptr<MoveTurtleGoalHandle
     {
         std::unique_lock<std::mutex> lock(mutex_);
         this->getRobotPose();
-        pred_pose_ = predictPos(robot_pose_, 
-            linear_vel_x, angular_vel_z, duration);
+        RCLCPP_INFO(this->get_logger(), "Initial pose: x = %f, y = %f, theta = %f", 
+            robot_pose_[0], robot_pose_[1], robot_pose_[2]);
+        pred_pose_ = predictPos(robot_pose_, linear_vel_x, angular_vel_z, duration);
+        RCLCPP_INFO(this->get_logger(), "Predicted pose: x = %f, y = %f, theta = %f", 
+            pred_pose_[0], pred_pose_[1], pred_pose_[2]);
     }
 
     std::this_thread::sleep_for(std::chrono::milliseconds(50));
@@ -232,8 +235,11 @@ void DiffDriveGzManager::execute_goal(const std::shared_ptr<MoveTurtleGoalHandle
     // Set velocity to zero to stop the robot
     publishTwist(0.0, 0.0);
     {
+        std::this_thread::sleep_for(std::chrono::milliseconds(50));
         std::lock_guard<std::mutex> lock(mutex_);
         this->getRobotPose();
+        RCLCPP_INFO(this->get_logger(), "Final pose: x = %f, y = %f, theta = %f", 
+            robot_pose_[0], robot_pose_[1], robot_pose_[2]);
         result->final_pos_x = robot_pose_[0];
         result->final_pos_y = robot_pose_[1];
         result->final_theta = robot_pose_[2];
@@ -248,11 +254,11 @@ std::array<float, 3> DiffDriveGzManager::predictPos(const std::array<float, 3>& 
     const float ang_vel_z, const float duration)
 {
     std::array<float, 3> final_pos = init_pos;
-    final_pos[0] += lin_vel_x*(sin(final_pos[2]+ang_vel_z*duration)-
+    final_pos[0] += 0.5*lin_vel_x*(sin(final_pos[2]+ang_vel_z*duration)-
         sin(final_pos[2]))/ang_vel_z;
-    final_pos[1] += lin_vel_x*(-cos(final_pos[2]+ang_vel_z*duration)+
+    final_pos[1] += 0.5*lin_vel_x*(-cos(final_pos[2]+ang_vel_z*duration)+
         cos(final_pos[2]))/ang_vel_z;
-    final_pos[2] += ang_vel_z*duration;
+    final_pos[2] += 0.5*ang_vel_z*duration;
     final_pos[2] = fmod(final_pos[2], 2.0 * M_PI);
     if (final_pos[2] > M_PI) {
         final_pos[2] -= 2.0 * M_PI;
